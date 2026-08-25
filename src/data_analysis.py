@@ -1,130 +1,82 @@
 import pandas as pd
-import numpy as np
 
-data = pd.read_csv ("data/portfolio.csv", parse_dates = ["Date"])
-print ("First five rows:")
-print (data.head())
-
-data["Australian_Return"] = data["Australian_Equity"].pct_change()
-print ("Australian equity returns:")
-print (data[["Date", "Australian_Return"]])
-
-
-
-print("Data types:") 
-print(data.dtypes)
-
-print("Summary statistics:")
-print(data.describe())  
-
-data["Australian_Return"] = (
-    data["Australian_Equity"].pct_change()
+from risk_metrics import (
+    annualised_volatility,
+    sharpe_ratio,
+    maximum_drawdown,
+    tracking_error,
+    information_ratio,
 )
 
-print(data)
+
+# --------------------------------------------------
+# 1. Load data
+# --------------------------------------------------
+
+data = pd.read_csv(
+    "data/portfolio.csv",
+    parse_dates=["Date"]
+)
+
+
+# --------------------------------------------------
+# 2. Calculate asset returns
+# --------------------------------------------------
 
 assets = [
     "Australian_Equity",
     "International_Equity",
     "Bonds",
-    "Cash"
+    "Cash",
 ]
 
 for asset in assets:
     data[f"{asset}_Return"] = data[asset].pct_change()
-    
 
-print(data)
+
+# --------------------------------------------------
+# 3. Define portfolio weights
+# --------------------------------------------------
 
 weights = {
-    "Australian_Equity": 0.4,
-    "International_Equity": 0.3,
-    "Bonds": 0.2,
-    "Cash": 0.1
+    "Australian_Equity_Return": 0.30,
+    "International_Equity_Return": 0.40,
+    "Bonds_Return": 0.20,
+    "Cash_Return": 0.10,
 }
 
 
-    
+# --------------------------------------------------
+# 4. Calculate portfolio return
+# --------------------------------------------------
 
 data["Portfolio_Return"] = (
     data["Australian_Equity_Return"]
-    * weights["Australian_Equity"]
+    * weights["Australian_Equity_Return"]
     + data["International_Equity_Return"]
-    * weights["International_Equity"]
+    * weights["International_Equity_Return"]
     + data["Bonds_Return"]
-    * weights["Bonds"]
+    * weights["Bonds_Return"]
     + data["Cash_Return"]
-    * weights["Cash"]
-)
-
-data.replace(np.nan, 0, inplace=True)
-
-print(
-    data[["Date", "Portfolio_Return"]]
-)
-
-data["Portfolio_Growth"] = (
-    1 + data["Portfolio_Return"]
-).cumprod()
-
-total_return = data["Portfolio_Growth"].iloc[-1] - 1
-
-print(f"Total portfolio return ; {total_return:.2%}")
-
-# Risk metrics
-
-daily_volatility = data["Portfolio_Return"].std()
-
-annualised_volatility = (
-    daily_volatility * (252 ** 0.5)
-)
-
-print(
-    f"\nDaily volatility: {daily_volatility:.2%}"
+    * weights["Cash_Return"]
 )
 
 
-print(
-    f"Annualised volatility: {annualised_volatility:.2%}"
-)
-
-# Sharpe ratio
-
-annual_risk_free_rate = 0.04
-
-daily_risk_free_rate = (
-    (1 + annual_risk_free_rate) ** (1 / 252) - 1
-)
-
-excess_returns = (
-    data["Portfolio_Return"]
-    - daily_risk_free_rate
-)
-
-sharpe_ratio = (
-    excess_returns.mean()
-    / data["Portfolio_Return"].std()
-    * (252 ** 0.5)
-)
-
-print(f"Sharpe ratio: {sharpe_ratio:.2f}")
-
-# Maximum drawdown
-
-data["Running_Peak"] = data["Portfolio_Growth"].cummax()
-data["Drawdown"] = (data["Portfolio_Growth"] / data["Running_Peak"] - 1)
-maximum_drawdown = data["Drawdown"].min()
-
-print(f"Maximum drawdown: {maximum_drawdown:.2%}")
-
-#Benchmark
+# --------------------------------------------------
+# 5. Define benchmark weights
+# --------------------------------------------------
 
 benchmark_weights = {
     "Australian_Equity_Return": 0.35,
     "International_Equity_Return": 0.45,
     "Bonds_Return": 0.15,
-    "Cash_Return": 0.05
+    "Cash_Return": 0.05,
 }
+
+
+# --------------------------------------------------
+# 6. Calculate benchmark return
+# --------------------------------------------------
 
 data["Benchmark_Return"] = (
     data["Australian_Equity_Return"]
@@ -137,97 +89,51 @@ data["Benchmark_Return"] = (
     * benchmark_weights["Cash_Return"]
 )
 
-data["Excess_Return"] = (
-    data["Portfolio_Return"]
-    - data["Benchmark_Return"]
-)
 
-print(
-    data[
-        [
-            "Date",
-            "Portfolio_Return",
-            "Benchmark_Return",
-            "Excess_Return"
-        ]
-    ]
-)
-
-# Tracking error
-
-tracking_error_daily = (
-    data["Excess_Return"].std()
-)
-
-tracking_error_annual = tracking_error_daily * (252 ** 0.5)
-
-print(f"Tracking error (daily): {tracking_error_daily:.2%}")
-print(f"Tracking error (annualised): {tracking_error_annual:.2%}")      
-
-
-# Information Ratio
-
-annualised_active_return = (
-    data["Excess_Return"].mean() * 252
-)
-
-information_ratio = (
-    annualised_active_return
-    / tracking_error_annual
-)
-
-print(
-    f"Information ratio: "
-    f"{information_ratio:.2f}"
-)
-
-
-data["Benchmark_Growth"] = (
-    1 + data["Benchmark_Return"]
-).fillna(1).cumprod()
+# --------------------------------------------------
+# 7. Calculate portfolio growth
+# --------------------------------------------------
 
 data["Portfolio_Growth"] = (
     1 + data["Portfolio_Return"].fillna(0)
 ).cumprod()
 
-print(
-    data[
-        [
-            "Date",
-            "Portfolio_Growth",
-            "Benchmark_Growth"
-        ]
-    ]
+
+# --------------------------------------------------
+# 8. Risk metrics
+# --------------------------------------------------
+
+volatility = annualised_volatility(
+    data["Portfolio_Return"]
 )
 
-print("\n=== Portfolio Risk & Performance ===")
-
-print(
-    f"Total portfolio return: "
-    f"{total_return:.2%}"
+sharpe = sharpe_ratio(
+    data["Portfolio_Return"]
 )
 
-print(
-    f"Annualised volatility: "
-    f"{annualised_volatility:.2%}"
+mdd = maximum_drawdown(
+    data["Portfolio_Growth"]
 )
 
-print(
-    f"Sharpe ratio: "
-    f"{sharpe_ratio:.2f}"
+te = tracking_error(
+    data["Portfolio_Return"],
+    data["Benchmark_Return"]
 )
 
-print(
-    f"Maximum drawdown: "
-    f"{maximum_drawdown:.2%}"
+ir = information_ratio(
+    data["Portfolio_Return"],
+    data["Benchmark_Return"]
 )
 
-print(
-    f"Annualised tracking error: "
-    f"{tracking_error_annual:.2%}"
-)
 
-print(
-    f"Information ratio: "
-    f"{information_ratio:.2f}"
-)
+# --------------------------------------------------
+# 9. Report
+# --------------------------------------------------
+
+print("\n=== Portfolio Risk Report ===")
+
+print(f"Annualised volatility: {volatility:.2%}")
+print(f"Sharpe ratio: {sharpe:.2f}")
+print(f"Maximum drawdown: {mdd:.2%}")
+print(f"Tracking error: {te:.2%}")
+print(f"Information ratio: {ir:.2f}")
