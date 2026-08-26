@@ -98,6 +98,17 @@ data["Portfolio_Growth"] = (
     1 + data["Portfolio_Return"].fillna(0)
 ).cumprod()
 
+data["Benchmark_Growth"] = (
+    1 + data["Benchmark_Return"].fillna(0)
+).cumprod()
+
+running_peak = data["Portfolio_Growth"].cummax()
+
+data["Drawdown"] = (
+    data["Portfolio_Growth"]
+    / running_peak
+    - 1
+)
 
 # --------------------------------------------------
 # 8. Risk metrics
@@ -137,3 +148,18 @@ print(f"Sharpe ratio: {sharpe:.2f}")
 print(f"Maximum drawdown: {mdd:.2%}")
 print(f"Tracking error: {te:.2%}")
 print(f"Information ratio: {ir:.2f}")
+
+
+# Visualisation
+
+from visualisation import (
+    plot_portfolio_vs_benchmark,
+    plot_drawdown,  
+    plot_rolling_volatility,
+    plot_rolling_sharpe
+)
+
+plot_portfolio_vs_benchmark(data)
+plot_drawdown(data)
+plot_rolling_volatility(data)
+plot_rolling_sharpe(data)
