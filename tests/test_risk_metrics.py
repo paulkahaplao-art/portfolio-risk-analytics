@@ -19,3 +19,4 @@ def test_maximum_drawdown():
     expected = 0.90 / 1.10 - 1
 
     assert abs(result - expected) < 1e-10
+

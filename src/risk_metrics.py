@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 
 
 def annualised_volatility(returns, periods_per_year=252):
@@ -7,86 +8,81 @@ def annualised_volatility(returns, periods_per_year=252):
     """
     return returns.std() * np.sqrt(periods_per_year)
 
-def sharpe_ratio(
-    returns,
-    annual_risk_free_rate=0.04,
-    periods_per_year=252
-):
+
+def sharpe_ratio(returns, risk_free_rate=0.0, periods_per_year=252):
     """
     Calculate annualised Sharpe ratio.
     """
-
-    daily_risk_free_rate = (
-        (1 + annual_risk_free_rate)
-        ** (1 / periods_per_year)
-        - 1
-    )
-
-    excess_returns = returns - daily_risk_free_rate
+    excess_returns = returns - risk_free_rate / periods_per_year
 
     return (
         excess_returns.mean()
-        / returns.std()
+        / excess_returns.std()
         * np.sqrt(periods_per_year)
     )
 
 def maximum_drawdown(growth):
     """
-    Calculate maximum drawdown from a growth series.
+    Calculate maximum drawdown from a growth/wealth series.
     """
+    running_max = growth.cummax()
 
-    running_peak = growth.cummax()
-
-    drawdown = (
-        growth / running_peak - 1
-    )
+    drawdown = growth / running_max - 1
 
     return drawdown.min()
 
-def tracking_error(
-    portfolio_returns,
-    benchmark_returns,
-    periods_per_year=252
+
+def historical_var(returns, confidence_level=0.95):
+    """
+    Calculate historical Value at Risk.
+
+    Returns VaR as a positive number representing the potential loss.
+    """
+    percentile = returns.quantile(1 - confidence_level)
+
+    return -percentile
+
+
+def var_dollar_value(
+    returns,
+    portfolio_value,
+    confidence_level=0.95
 ):
     """
-    Calculate annualised tracking error.
+    Calculate historical VaR in dollar terms.
     """
-
-    active_returns = (
-        portfolio_returns - benchmark_returns
+    var = historical_var(
+        returns,
+        confidence_level=confidence_level
     )
 
-    return (
-        active_returns.std()
-        * np.sqrt(periods_per_year)
-    )
+    return portfolio_value * var
 
-def information_ratio(
-    portfolio_returns,
-    benchmark_returns,
-    periods_per_year=252
+
+def expected_shortfall(returns, confidence_level=0.95):
+    """
+    Calculate historical Expected Shortfall.
+
+    Returns the average loss beyond the VaR threshold.
+    """
+    var_threshold = returns.quantile(1 - confidence_level)
+
+    tail_returns = returns[returns <= var_threshold]
+
+    return -tail_returns.mean()
+
+
+def expected_shortfall_dollar_value(
+    returns,
+    portfolio_value,
+    confidence_level=0.95
 ):
     """
-    Calculate annualised Information Ratio.
+    Calculate Expected Shortfall in dollar terms.
     """
-
-    active_returns = (
-        portfolio_returns - benchmark_returns
+    es = expected_shortfall(
+        returns,
+        confidence_level=confidence_level
     )
 
-    annualised_active_return = (
-        active_returns.mean()
-        * periods_per_year
-    )
-
-    annualised_tracking_error = (
-        active_returns.std()
-        * np.sqrt(periods_per_year)
-    )
-
-    return (
-        annualised_active_return
-        / annualised_tracking_error
-    )
-
-
+    return portfolio_value * es
