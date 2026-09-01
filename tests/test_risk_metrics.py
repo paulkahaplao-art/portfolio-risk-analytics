@@ -16,6 +16,7 @@ from src.portfolio_risk import (
     calculate_rolling_volatility,
     calculate_rolling_tracking_error,
     calculate_rolling_active_return,
+    create_risk_report,
 )
 
 def test_maximum_drawdown():
@@ -358,3 +359,80 @@ def test_rolling_active_return():
         result,
         expected
     )
+
+
+def test_create_risk_report():
+
+    asset_returns = pd.DataFrame({
+        "Australian_Equity": [
+            0.010,
+            0.020,
+            0.015,
+            0.005,
+            0.010,
+        ],
+        "International_Equity": [
+            0.005,
+            0.010,
+            0.020,
+            0.010,
+            0.005,
+        ],
+        "Bonds": [
+            0.001,
+            0.001,
+            0.001,
+            0.001,
+            0.001,
+        ],
+        "Cash": [
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+            0.0001,
+        ],
+    })
+
+    weights = pd.Series({
+        "Australian_Equity": 0.30,
+        "International_Equity": 0.40,
+        "Bonds": 0.20,
+        "Cash": 0.10,
+    })
+
+    portfolio_returns = (
+        asset_returns * weights
+    ).sum(axis=1)
+
+    benchmark_returns = pd.Series([
+        0.005,
+        0.010,
+        0.020,
+        0.010,
+        0.005,
+    ])
+
+    report = create_risk_report(
+        asset_returns,
+        weights,
+        portfolio_returns,
+        benchmark_returns,
+        1_000_000,
+    )
+
+    expected_columns = [
+        "Annualised Volatility",
+        "Maximum Drawdown",
+        "95% VaR",
+        "99% VaR",
+        "95% Expected Shortfall",
+        "95% VaR ($)",
+        "99% VaR ($)",
+        "95% Expected Shortfall ($)",
+        "Tracking Error",
+        "Information Ratio",
+    ]
+
+    for column in expected_columns:
+        assert column in report.index

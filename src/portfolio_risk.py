@@ -314,6 +314,66 @@ def calculate_rolling_active_return(
         * 252
     )
 
+def create_risk_report(
+    asset_returns,
+    weights,
+    portfolio_returns,
+    benchmark_returns,
+    portfolio_value,
+):
+    """
+    Create a consolidated portfolio risk report.
+    """
+
+    volatility = calculate_portfolio_volatility(
+        asset_returns,
+        weights,
+    )   
+
+    drawdown = maximum_drawdown(
+        (1 + portfolio_returns).cumprod()
+    )
+
+    var_95 = historical_var(
+        portfolio_returns,
+        0.95
+    )
+
+    var_99 = historical_var(
+        portfolio_returns,
+        0.99
+    )
+
+    es_95 = expected_shortfall(
+        portfolio_returns,
+        0.95
+    )
+
+    tracking_error = calculate_tracking_error(
+        portfolio_returns,
+        benchmark_returns
+    )
+
+    information_ratio = calculate_information_ratio(
+        portfolio_returns,
+        benchmark_returns
+    )
+
+    report = {
+        "Annualised Volatility": volatility,
+        "Maximum Drawdown": drawdown,
+        "95% VaR": var_95,
+        "99% VaR": var_99,
+        "95% Expected Shortfall": es_95,
+        "95% VaR ($)": var_95 * portfolio_value,
+        "99% VaR ($)": var_99 * portfolio_value,
+        "95% Expected Shortfall ($)": es_95 * portfolio_value,
+        "Tracking Error": tracking_error,
+        "Information Ratio": information_ratio,
+    }
+
+    return pd.Series(report)
+
 if __name__ == "__main__":
 
     filepath = "data/portfolio.csv"
@@ -359,6 +419,18 @@ if __name__ == "__main__":
         weights
     )
 
+    risk_report = create_risk_report(
+        asset_returns,
+        weights,
+        portfolio_returns,
+        benchmark_returns,
+        portfolio_value=1_000_000,
+    )
+
+    print()
+    print("PORTFOLIO RISK DASHBOARD")
+    print("=" * 50)
+    print(risk_report)
 
     active_returns = calculate_active_returns(
     portfolio_returns,
@@ -431,6 +503,11 @@ if __name__ == "__main__":
     )
 
     print()
+    print("RISK CONTRIBUTION")
+    print("=" * 50)
+    print(risk_contributions)
+
+    print()
     print("PORTFOLIO RISK DECOMPOSITION")
     print("-" * 70)
     print(risk_contributions)
@@ -446,9 +523,12 @@ if __name__ == "__main__":
     )
 
     print()
-    print("Risk contribution total:", risk_contribution_total)
-    print("Portfolio volatility:", portfolio_volatility)
-    print("Difference:", difference)
+    print("RISK RECONCILIATION")
+    print("=" * 50)
+    print(f"Risk contribution total: {risk_contribution_total:.10f}")
+    print(f"Portfolio volatility:    {portfolio_volatility:.10f}")
+    print(f"Difference:              {difference:.10f}")
+
 
     if abs(difference) > 1e-10:
         raise ValueError(
