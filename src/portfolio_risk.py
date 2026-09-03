@@ -7,6 +7,13 @@ from src.risk_metrics import (
     expected_shortfall,
 )
 
+from src.visualisation import (
+    plot_risk_summary,
+    plot_risk_contributions,
+    plot_rolling_volatility,
+    plot_rolling_tracking_error,
+    plot_cumulative_performance,
+)
 
 def load_portfolio_data(filepath):
     """
@@ -392,33 +399,47 @@ if __name__ == "__main__":
         "Cash": 0.10,
     })
 
-    # Validate weights
-    validate_weights(weights)
-
     # Calculate asset returns
     asset_returns = calculate_asset_returns(df)
     asset_returns = asset_returns.dropna()
 
-    benchmark_returns = calculate_benchmark_returns(
-    asset_returns
-    )
-
-    print()
-    print("BENCHMARK RETURNS")
-    print("-" * 30)
-    print(benchmark_returns)
-
-    print()
-    print("ASSET RETURNS")
-    print("-" * 30)
-    print(asset_returns)
-
     # Calculate portfolio returns
     portfolio_returns = calculate_portfolio_returns(
         asset_returns,
-        weights
+        weights,
     )
 
+    # Calculate benchmark
+    benchmark_returns = calculate_benchmark_returns(
+        asset_returns,
+    )
+
+    # Calculate active returns
+    active_returns = calculate_active_returns(
+        portfolio_returns,
+        benchmark_returns,
+    )
+
+    # Calculate risk contributions
+    risk_contributions = calculate_risk_contributions(
+        asset_returns,
+        weights,
+    )
+
+    # Calculate rolling volatility
+    rolling_volatility = calculate_rolling_volatility(
+        portfolio_returns,
+        window=5,
+    )
+
+    # Calculate rolling tracking error
+    rolling_tracking_error = calculate_rolling_tracking_error(
+        portfolio_returns,
+        benchmark_returns,
+        window=5,
+    )
+
+    # Create consolidated risk report
     risk_report = create_risk_report(
         asset_returns,
         weights,
@@ -427,137 +448,29 @@ if __name__ == "__main__":
         portfolio_value=1_000_000,
     )
 
-    print()
-    print("PORTFOLIO RISK DASHBOARD")
-    print("=" * 50)
-    print(risk_report)
+    # ONLY NOW create charts
+    plot_risk_summary(
+        risk_report,
+        "reports/charts/risk_summary.png",
+    )
 
-    active_returns = calculate_active_returns(
+    plot_risk_contributions(
+        risk_contributions,
+        "reports/charts/risk_contributions.png",
+    )
+
+    plot_rolling_volatility(
+        rolling_volatility,
+        "reports/charts/rolling_volatility.png",
+    )
+
+    plot_rolling_tracking_error(
+        rolling_tracking_error,
+        "reports/charts/rolling_tracking_error.png",
+    )
+
+    plot_cumulative_performance(
     portfolio_returns,
-    benchmark_returns
+    benchmark_returns,
+    "reports/charts/cumulative_performance.png",
     )
-
-    rolling_volatility = calculate_rolling_volatility(
-        portfolio_returns,
-        window=5
-    )
-
-    rolling_tracking_error = (
-        calculate_rolling_tracking_error(
-            portfolio_returns,
-            benchmark_returns,
-            window=5
-        )
-    )
-
-    rolling_active_return = (
-        calculate_rolling_active_return(
-            portfolio_returns,
-            benchmark_returns,
-            window=5
-        )
-    )
-
-
-    print()
-    print("PORTFOLIO RETURNS")
-    print("-" * 30)
-    print(portfolio_returns)
-
-    print()
-    print("ACTIVE RETURNS")
-    print("-" * 30)
-    print(active_returns)
-
-    tracking_error = calculate_tracking_error(
-    portfolio_returns,
-    benchmark_returns
-     )
-
-    print()
-    print("TRACKING ERROR")
-    print("-" * 30)
-    print(f"Annualised Tracking Error: {tracking_error:.6f}")
-
-    information_ratio = calculate_information_ratio(
-    portfolio_returns,
-    benchmark_returns
-    )
-
-    print()
-    print("INFORMATION RATIO")
-    print("-" * 30)
-    print(f"Information Ratio: {information_ratio:.6f}")
-    
-
-    # Calculate portfolio volatility
-    portfolio_volatility = calculate_portfolio_volatility(
-        asset_returns,
-        weights
-    )
-
-    # Calculate risk contributions
-    risk_contributions = calculate_risk_contributions(
-        asset_returns,
-        weights
-    )
-
-    print()
-    print("RISK CONTRIBUTION")
-    print("=" * 50)
-    print(risk_contributions)
-
-    print()
-    print("PORTFOLIO RISK DECOMPOSITION")
-    print("-" * 70)
-    print(risk_contributions)
-
-    # Validate risk contribution reconciliation
-    risk_contribution_total = (
-        risk_contributions["Component Contribution"].sum()
-    )
-
-    difference = (
-        risk_contribution_total
-        - portfolio_volatility
-    )
-
-    print()
-    print("RISK RECONCILIATION")
-    print("=" * 50)
-    print(f"Risk contribution total: {risk_contribution_total:.10f}")
-    print(f"Portfolio volatility:    {portfolio_volatility:.10f}")
-    print(f"Difference:              {difference:.10f}")
-
-
-    if abs(difference) > 1e-10:
-        raise ValueError(
-            "Risk contributions do not reconcile "
-            "to portfolio volatility."
-        )
-
-    # Calculate risk metrics
-    metrics = calculate_risk_metrics(
-        portfolio_returns,
-        portfolio_value=1_000_000
-    )
-
-    print()
-    print("PORTFOLIO RISK REPORT")
-    print("-" * 30)
-
-    for metric, value in metrics.items():
-        print(f"{metric}: {value:.6f}")
-
-
-    print()
-    print("ROLLING RISK ANALYSIS")
-    print("-" * 50)
-
-    rolling_report = pd.DataFrame({
-        "Rolling Volatility": rolling_volatility,
-        "Rolling Tracking Error": rolling_tracking_error,
-        "Rolling Active Return": rolling_active_return,
-    })
-
-    print(rolling_report)
