@@ -14,7 +14,7 @@ from risk_metrics import (
 # --------------------------------------------------
 
 data = pd.read_csv(
-    "data/portfolio.csv",
+    "data/market_data.csv",
     parse_dates=["Date"]
 )
 
@@ -163,3 +163,5 @@ plot_portfolio_vs_benchmark(data)
 plot_drawdown(data)
 plot_rolling_volatility(data)
 plot_rolling_sharpe(data)
+
+

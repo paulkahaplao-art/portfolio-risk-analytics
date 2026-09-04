@@ -34,13 +34,16 @@ def maximum_drawdown(growth):
 
 def historical_var(returns, confidence_level=0.95):
     """
-    Calculate historical Value at Risk.
-
-    Returns VaR as a positive number representing the potential loss.
+    Calculate historical Value at Risk as a positive loss magnitude.
     """
-    percentile = returns.quantile(1 - confidence_level)
+    if not 0 < confidence_level < 1:
+        raise ValueError(
+            "confidence_level must be between 0 and 1."
+        )
 
-    return -percentile
+    loss_quantile = returns.quantile(1 - confidence_level)
+
+    return -loss_quantile
 
 
 def var_dollar_value(
@@ -61,15 +64,18 @@ def var_dollar_value(
 
 def expected_shortfall(returns, confidence_level=0.95):
     """
-    Calculate historical Expected Shortfall.
-
-    Returns the average loss beyond the VaR threshold.
+    Calculate historical Expected Shortfall as a positive loss magnitude.
     """
+    if not 0 < confidence_level < 1:
+        raise ValueError(
+            "confidence_level must be between 0 and 1."
+        )
+
     var_threshold = returns.quantile(1 - confidence_level)
 
-    tail_returns = returns[returns <= var_threshold]
+    tail_losses = returns[returns <= var_threshold]
 
-    return -tail_returns.mean()
+    return -tail_losses.mean()
 
 
 def expected_shortfall_dollar_value(

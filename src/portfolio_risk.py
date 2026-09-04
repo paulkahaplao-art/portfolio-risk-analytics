@@ -15,6 +15,8 @@ from src.visualisation import (
     plot_cumulative_performance,
 )
 
+from src.excel_report import create_excel_report
+
 def load_portfolio_data(filepath):
     """
     Load portfolio data from CSV.
@@ -473,4 +475,15 @@ if __name__ == "__main__":
     portfolio_returns,
     benchmark_returns,
     "reports/charts/cumulative_performance.png",
+    )
+
+        # Create Excel risk report
+    create_excel_report(
+        risk_report=risk_report,
+        risk_contributions=risk_contributions,
+        rolling_volatility=rolling_volatility,
+        rolling_tracking_error=rolling_tracking_error,
+        portfolio_returns=portfolio_returns,
+        benchmark_returns=benchmark_returns,
+        output_path="reports/portfolio_risk_report.xlsx",
     )
