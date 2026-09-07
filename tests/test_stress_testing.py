@@ -5,10 +5,13 @@ from src.stress_testing import (
     calculate_scenario_return,
     calculate_scenario_loss,
     classify_scenario_severity,
+    run_stress_scenarios,
     identify_worst_days,
     calculate_day_contributions,
+    create_historical_stress_scenario,
+    rank_stress_scenarios,
+    create_stress_summary,
 )
-
 
 @pytest.fixture
 def weights():
@@ -123,3 +126,77 @@ def test_day_contributions(weights):
     assert contributions["Cash"] == pytest.approx(0.00)
 
     assert contributions.sum() == pytest.approx(-0.12)
+
+def test_missing_scenario_asset_raises_error(weights):
+    incomplete_scenario = {
+        "Australian_Equity": -0.10,
+        "International_Equity": -0.20,
+        "Bonds": -0.05,
+    }
+
+    with pytest.raises(ValueError):
+        calculate_scenario_return(
+            weights,
+            incomplete_scenario,
+        )
+
+def test_rank_stress_scenarios():
+
+    results = pd.DataFrame({
+        "Scenario": [
+            "Scenario A",
+            "Scenario B",
+            "Scenario C",
+        ],
+        "Portfolio Return": [
+            -0.05,
+            -0.20,
+            -0.10,
+        ],
+        "Portfolio P&L": [
+            -5_000,
+            -20_000,
+            -10_000,
+        ],
+        "Severity": [
+            "Moderate",
+            "High",
+            "Moderate",
+        ],
+    })
+
+    ranked = rank_stress_scenarios(results)
+
+    assert ranked.iloc[0]["Scenario"] == "Scenario B"
+    assert ranked.iloc[0]["Portfolio P&L"] == -20_000
+    assert ranked.iloc[-1]["Scenario"] == "Scenario A"
+
+
+def test_create_stress_summary():
+
+    results = pd.DataFrame({
+        "Scenario": [
+            "Scenario A",
+            "Scenario B",
+        ],
+        "Portfolio Return": [
+            -0.05,
+            -0.20,
+        ],
+        "Portfolio P&L": [
+            -5_000,
+            -20_000,
+        ],
+        "Severity": [
+            "Moderate",
+            "High",
+        ],
+    })
+
+    summary = create_stress_summary(results)
+
+    assert summary["Worst Scenario"] == "Scenario B"
+    assert summary["Worst Return"] == -0.20
+    assert summary["Worst P&L"] == -20_000
+    assert summary["Worst Severity"] == "High"
+    assert summary["Scenario Count"] == 2

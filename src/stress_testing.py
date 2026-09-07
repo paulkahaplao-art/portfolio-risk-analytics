@@ -165,6 +165,51 @@ def create_historical_stress_scenario(
 
     return worst_date, scenario
 
+def rank_stress_scenarios(results):
+    """
+    Rank stress scenarios from worst to best
+    based on portfolio P&L.
+    """
+
+    required_columns = [
+        "Scenario",
+        "Portfolio Return",
+        "Portfolio P&L",
+        "Severity",
+    ]
+
+    missing_columns = [
+        column
+        for column in required_columns
+        if column not in results.columns
+    ]
+
+    if missing_columns:
+        raise ValueError(
+            f"Stress results are missing columns: {missing_columns}"
+        )
+
+    return results.sort_values(
+        "Portfolio P&L",
+        ascending=True,
+    ).reset_index(drop=True)
+
+def create_stress_summary(results):
+    """
+    Create a high-level summary of stress-test results.
+    """
+
+    ranked = rank_stress_scenarios(results)
+
+    worst_scenario = ranked.iloc[0]
+
+    return {
+        "Worst Scenario": worst_scenario["Scenario"],
+        "Worst Return": worst_scenario["Portfolio Return"],
+        "Worst P&L": worst_scenario["Portfolio P&L"],
+        "Worst Severity": worst_scenario["Severity"],
+        "Scenario Count": len(ranked),
+    }
 
 if __name__ == "__main__":
 
