@@ -24,6 +24,10 @@ from src.risk_budget import (
     create_risk_budget_table,
 )
 
+from src.risk_limits import (
+    build_risk_monitoring_report,
+)
+
 from src.factor_risk import (
     calculate_factor_exposure,
     calculate_portfolio_factor_exposure,
@@ -34,6 +38,18 @@ from src.factor_risk import (
     run_factor_stress_scenarios,
 )
 
+from src.risk_dashboard import (
+    create_risk_dashboard,
+    calculate_limit_utilisation,
+    create_breach_report,
+    create_warning_report,
+    create_factor_dashboard,
+    create_stress_dashboard,
+)
+
+from src.risk_monitoring_excel import (
+    create_risk_monitoring_excel,
+)
 
 WEIGHTS = pd.Series({
     "Australian_Equity": 0.30,
@@ -41,6 +57,10 @@ WEIGHTS = pd.Series({
     "Bonds": 0.20,
     "Cash": 0.10,
 })
+
+from src.risk_dashboard import save_dashboard_report
+
+
 
 
 def calculate_portfolio_returns(
@@ -213,8 +233,14 @@ def build_risk_engine(
         "Factor Stress": factor_stress,
     }
 
-    validate_risk_engine_results(results)
+    risk_monitoring = build_risk_monitoring_report(
+        results,
+        weights,
+    )
 
+    results["Risk Monitoring"] = risk_monitoring
+
+    validate_risk_engine_results(results)
     return results
 
 
@@ -249,6 +275,58 @@ if __name__ == "__main__":
         factor_returns,
         portfolio_value=100_000,
     )
+
+    dashboard = create_risk_dashboard(results)
+
+    limit_utilisation = calculate_limit_utilisation(
+        results["Risk Monitoring"]["Limit Results"]
+    )
+
+    breach_report = create_breach_report(
+        results["Risk Monitoring"]["Limit Results"]
+    )
+
+    warning_report = create_warning_report(
+        results["Risk Monitoring"]["Limit Results"]
+    )
+
+    factor_dashboard = create_factor_dashboard(results)
+
+    stress_dashboard = create_stress_dashboard(results)
+
+    excel_path = create_risk_monitoring_excel(
+    dashboard,
+    limit_utilisation,
+    factor_dashboard,
+    stress_dashboard,
+    results["Risk Monitoring"]["Summary"],
+    )
+
+    print(f"\nExcel risk monitoring report saved to: {excel_path}")
+
+    print("\nRisk Dashboard")
+    print("=" * 60)
+    print(dashboard)
+
+    print("\nLimit Utilisation")
+    print("-" * 60)
+    print(limit_utilisation)
+
+    print("\nBreaches")
+    print("-" * 60)
+    print(breach_report)
+
+    print("\nWarnings")
+    print("-" * 60)
+    print(warning_report)
+
+    print("\nFactor Dashboard")
+    print("-" * 60)
+    print(factor_dashboard)
+
+    print("\nStress Dashboard")
+    print("-" * 60)
+    print(stress_dashboard)
 
     print("\nINTEGRATED PORTFOLIO RISK ENGINE")
     print("=" * 90)
@@ -338,4 +416,20 @@ if __name__ == "__main__":
                 "Portfolio P&L": "${:,.2f}".format,
             }
         )
+    )
+
+    print("\nRisk Monitoring")
+    print("-" * 50)
+
+    monitoring = results["Risk Monitoring"]
+
+    print("\nRisk Limit Results:")
+    print(monitoring["Limit Results"])
+
+    print("\nRisk Monitoring Summary:")
+    print(monitoring["Summary"])
+
+    save_dashboard_report(
+    dashboard,
+    "data/risk_dashboard.csv",
     )

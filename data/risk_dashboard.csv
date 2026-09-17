@@ -1,0 +1,10 @@
+Metric,Value
+Overall Risk Status,BREACH
+Annualised Volatility,0.09694068479845655
+95% VaR,-0.009706043409520582
+99% VaR,-0.012980589121654514
+95% Expected Shortfall,-0.011738241725607964
+99% Expected Shortfall,-0.013943962485862438
+Maximum Drawdown,-0.09039028708304786
+Risk Limit Breaches,1
+Risk Limit Warnings,1

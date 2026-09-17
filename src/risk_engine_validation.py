@@ -134,6 +134,7 @@ def validate_risk_engine_results(results):
         "Factor Risk",
         "Residual Risk",
         "Factor Stress",
+        "Risk Monitoring",
     ]
 
     missing_sections = [
@@ -165,3 +166,4 @@ def validate_risk_engine_results(results):
         )
 
     return True
+
