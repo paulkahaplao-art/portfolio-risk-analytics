@@ -39,3 +39,24 @@ portfolio-risk-analytics/
 ├── tests/
 ├── generate_data.py
 └── README.md
+
+
+## Portfolio Analytics Outputs
+
+The project generates a set of portfolio analytics outputs covering performance, drawdown, risk metrics and stress testing.
+
+### Portfolio Performance
+
+![Portfolio Performance](Output/portfolio_performance.png)
+
+### Portfolio Drawdown
+
+![Portfolio Drawdown](Output/portfolio_drawdown.png)
+
+### Risk Metrics
+
+![Risk Metrics](Output/risk_metrics.png)
+
+### Stress Testing
+
+![Stress Test](Output/stress_test.png)
