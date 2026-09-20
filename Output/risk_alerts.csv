@@ -1,0 +1,6 @@
+Metric,Status,Actual,Warning,Limit,Limit Utilisation,Message
+Volatility,BREACH,0.09694068479845655,0.07,0.08,1.2117585599807068,Volatility has breached its risk limit. Actual: 9.69%; Limit: 8.00%.
+VaR 95%,PASS,-0.009706043409520582,-0.015,-0.02,0.4853021704760291,VaR 95% remains within its risk limit. Actual: -0.97%; Limit: -2.00%.
+Maximum Drawdown,WARNING,-0.09039028708304786,-0.08,-0.1,0.9039028708304786,Maximum Drawdown is approaching its risk limit. Actual: -9.04%; Warning level: -8.00%; Limit: -10.00%.
+International Equity Weight,PASS,0.4,0.45,0.5,0.8,International Equity Weight remains within its risk limit. Actual: 40.00%; Limit: 50.00%.
+Equity Factor Exposure,PASS,0.02367395255235387,0.45,0.5,0.04734790510470774,Equity Factor Exposure remains within its risk limit. Actual: 2.37%; Limit: 50.00%.

@@ -51,6 +51,15 @@ from src.risk_monitoring_excel import (
     create_risk_monitoring_excel,
 )
 
+from src.risk_alerts import (
+    create_alert_report,
+)
+
+from src.risk_alerts import(
+    create_alert_report,
+    save_alert_report,
+)
+
 WEIGHTS = pd.Series({
     "Australian_Equity": 0.30,
     "International_Equity": 0.40,
@@ -234,9 +243,20 @@ def build_risk_engine(
     }
 
     risk_monitoring = build_risk_monitoring_report(
-        results,
-        weights,
+    results,
+    weights,
     )
+
+    risk_alerts = create_alert_report(
+        risk_monitoring["Limit Results"]
+    )
+
+    save_alert_report(
+        risk_alerts["Alerts"],
+        "Output/risk_alerts.csv"
+    )
+
+    risk_monitoring["Alerts"] = risk_alerts
 
     results["Risk Monitoring"] = risk_monitoring
 
@@ -422,6 +442,18 @@ if __name__ == "__main__":
     print("-" * 50)
 
     monitoring = results["Risk Monitoring"]
+
+    print("\nRisk Alerts")
+    print("-" * 60)
+
+    print(
+        results["Risk Monitoring"]["Alerts"]["Active Alerts"]
+    )
+
+    print("\nAlert Summary:")
+    print(
+        results["Risk Monitoring"]["Alerts"]["Summary"]
+    )
 
     print("\nRisk Limit Results:")
     print(monitoring["Limit Results"])
