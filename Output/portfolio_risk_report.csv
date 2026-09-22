@@ -1,0 +1,14 @@
+Report Section,Metric,Actual,Limit,Utilisation,Status,Report Selection
+Overall,Overall Risk Status,,,,BREACH,
+,Volatility,0.09694068479845655,0.08,1.2117585599807068,BREACH,Risk Metrics
+Asset Risk Attribution,Australian_Equity,0.312601015317727,,,INFO,
+Asset Risk Attribution,International_Equity,0.6813609623229147,,,INFO,
+Asset Risk Attribution,Bonds,0.005889403391880726,,,INFO,
+Asset Risk Attribution,Cash,0.00014861896747763112,,,INFO,
+Factor Exposure,Equity,0.02367395255235387,,,INFO,
+Factor Exposure,Rates,-0.08597196553124346,,,INFO,
+Factor Exposure,Credit,-0.025327906272692487,,,INFO,
+Stress Test,Moderate Equity Selloff,-0.094,,,Moderate,
+Stress Test,Severe Equity Selloff,-0.22499999999999998,,,High,
+Stress Test,Equity + Bond Shock,-0.18,,,High,
+Stress Test,Diversified Stress,-0.119,,,Moderate,
