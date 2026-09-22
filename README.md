@@ -60,3 +60,28 @@ The project generates a set of portfolio analytics outputs covering performance,
 ### Stress Testing
 
 ![Stress Test](Output/stress_test.png)
+
+### Risk Attribution
+
+The risk attribution analysis decomposes portfolio risk across both asset classes and underlying risk factors.
+
+![Risk Attribution](Output/risk_attribution.png)
+
+### Automated Risk Reporting
+
+The project also generates a structured portfolio risk report in CSV format.
+
+The report consolidates:
+
+- Portfolio risk metrics
+- Risk-limit utilisation
+- Asset-level risk attribution
+- Portfolio factor exposures
+- Stress-test scenarios
+- Overall risk status
+
+Example output:
+
+`Output/portfolio_risk_report.csv`
+
+The reporting workflow separates analytical calculations from the final reporting layer, allowing the outputs to be consumed by downstream reporting or visualisation tools.
